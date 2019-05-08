@@ -1,3 +1,13 @@
+const model = {
+    title: "Users",
+    frames: 0,
+    sin: 0,
+    users: [
+        {username: "jim", departments: [12, 13, 872]},
+        {username: "flynn", departments: [52, 28, 98, 23]},
+    ]
+};
+
 class E {
     constructor(name, attribute_setters, children) {
         if (typeof name !== "string")

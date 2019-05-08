@@ -1,49 +1,11 @@
-// THREE JS Version
+"use strict";
 
 class E3 {
-    constructor(name, attribute_setters, ...children) {
-        if (typeof name !== "string")
-            throw new TypeError("name must be a string");
-        if (!attribute_setters || attribute_setters instanceof Node)
-            throw new TypeError("attribute_setters must be a key-value object");
-        if (!(children && children instanceof Array))
-            throw new TypeError("children must be an array");
 
-        this.update_listeners = [];
-        this.name = name;
-        if (name === "text") {
-            this.dom_node = document.createTextNode("");
-        } else {
-            this.dom_node = document.createElement(name);
-        }
-
-        this.process_attributes(attribute_setters);
-
+    constructor({onInitialize=()=>{}, onUpdate=()=>{}, children=[]}) {
         this.children = children;
-    }
-
-    process_attributes(attribute_setters) {
-        if (attribute_setters.static) {
-            for (const [key, value] of Object.entries(attribute_setters.static)) {
-                this.dom_node[key] = value;
-            }
-        }
-        if (attribute_setters.dynamic) {
-            for (const [key, value] of Object.entries(attribute_setters.dynamic)) {
-                this.dom_node[key] = value();
-                this.update_listeners.push(() => {
-                    this.dom_node[key] = value();
-                });
-            }
-        }
-    }
-
-    register(...args) {
-        this.parent.register(...args);
-    }
-
-    unregister(...args) {
-        this.parent.unregister(...args);
+        this.onInitialize = onInitialize;
+        this.onUpdate = onUpdate;
     }
 
     enter(parent_node) {
@@ -51,148 +13,136 @@ class E3 {
         for (const child of this.children) {
             child.enter(this);
         }
-        this.parent.dom_node.appendChild(this.dom_node);
-        for (const update_listener of this.update_listeners) {
-            this.parent.register(update_listener);
-        }
+        this.parent.obj.add(this.obj);
     }
 
     leave() {
-        this.dom_node.parentNode.removeChild(this.dom_node);
-        for (const update_listener of this.update_listeners) {
-            this.parent.unregister(update_listener);
-        }
+        this.parent.obj.remove(this.obj);
         for (const child of this.children) {
             child.leave();
         }
         this.children = null;
     }
+
+    update(scope) {
+        this.onUpdate(this.obj, scope);
+        this.children.forEach(child => child.update(scope));
+    }
+
+    initialize(scope) {
+        this.onInitialize(this.obj, scope);
+        this.children.forEach(child => child.initialize(scope));
+    }
+
 }
 
+E3.Scene = class {
 
-E3.ForEach = class {
-
-    constructor(getter, childer) {
-        this.dom_node = document.createElement("span");
-        this.registry = [];
-        this.children = [];
-        this.update_listeners = [];
-        this.update_listeners.push(() => {
-            const data = getter();
-            if (data.length !== this.children.length) {
-                const difflen = Math.abs(data.length - this.children.length);
-                const offset = Math.min(data.length, this.children.length);
-                if (this.children.length > data.length) {
-                    for (let i = 0; i < difflen; i++) {
-                        const child = this.children.pop();
-                        child.leave();
-                    }
-                } else {
-                    for (let i = 0; i < difflen; i++) {
-                        const child = childer(offset+i);
-                        child.enter(this);
-                        this.children.push(child);
-                    }
-                }
-            }
-
-            for (const listener of this.registry) {
-                listener();
-            }
-
-        });
-    }
-
-    register(func) {
-        this.registry.push(func);
-    }
-
-    unregister(func) {
-        this.registry = this.registry.filter(listener => listener !== func);
-    }
-
-    enter(parent_node) {
-        this.parent = parent_node;
-        this.parent.dom_node.appendChild(this.dom_node);
-        for (const update_listener of this.update_listeners) {
-            update_listener();
-            this.parent.register(update_listener);
-        }
-    }
-
-    leave() {
-        for (const child of this.children) {
-            child.leave();
-        }
-        for (const update_listener of this.update_listeners) {
-            this.parent.unregister(update_listener);
-        }
-        this.children = null;
-    }
-};
-
-E3.RootWrapper = class {
-    constructor(...children) {
-        this.name = "root";
-        this.dom_node = document.getElementById("root");
+    constructor({children = []}) {
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer();
         this.children = children;
-        this.registry = [];
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(this.renderer.domElement);
+        this.obj = new THREE.Scene();
         for (const child of children) {
             child.enter(this);
         }
-        const update_interval = 1000;
-
-        setTimeout(function update_loop() {
-            for (const listener of this.registry) {
-                listener();
-            }
-            setTimeout(update_loop.bind(this), update_interval);
-        }.bind(this), update_interval);
+        this.initialize();
+        this.update();
     }
 
-    register(func) {
-        this.registry.push(func);
-    }
-
-    unregister(func) {
-        this.registry = this.registry.filter(listener => listener !== func);
-    }
-
-    leave() {
+    update(delta) {
+        const scope = Object.create(model3d);
+        scope.delta = delta;
         for (const child of this.children) {
-            child.leave();
+            child.update(scope);
         }
-        this.children = [];
+        this.renderer.render(this.obj, this.camera);
+    }
+
+    initialize() {
+        const scope = Object.create(model3d);
+        for (const child of this.children) {
+            child.initialize(scope);
+        }
     }
 };
 
-/// EXAMPLE CODE ///
-//window.root = new E3.RootWrapper(
-//    new E3("scene", {},
-//        new E3("text", {"static":{
-//            "nodeValue": "welcome!"
-//        }}),
-//        new E3("br", {}),
-//        new E3("text", {dynamic:{
-//            "nodeValue": _ => model.title + ": " + model.frames + " frames"
-//        }}),
-//        new E3("ul", {},
-//            new E3.ForEach(() => model.users, (i0) =>
-//                new E3("li", {},
-//                    new E3("span", {dynamic: {
-//                        innerHTML: () => model.users[i0].username
-//                    }}),
-//                    new E3.ForEach(() => model.users[i0].departments, (i1) =>
-//                        new E3("span", {},
-//                            new E3("text", {dynamic:{nodeValue: () => {
-//                                const user = model.users[i0];
-//                                const department = user.departments[i1];
-//                                return " " + department + " ";
-//                            }}})
-//                        )
-//                    )
-//                )
-//            )
-//        )
-//    )
-//);
+E3.ForEach = class extends E3 {
+
+    constructor({model=(()=>{}), as=Math.random().toString(), child=(()=>[])}) {
+        super({children:[]});
+        this.model = model;
+        this.as = as;
+        this.child = child;
+        this.children = [];
+        this.obj = new THREE.Object3D();
+    }
+
+    initialize(scope) {
+        for (const row of this.model(scope)) {
+            const child_scope = Object.assign(Object.create(scope), row);
+            const child = this.child();
+            this.children.push(child);
+            child.enter(this);
+            child.initialize(child_scope);
+        }
+    }
+
+    update(scope) {
+
+        // TODO: reconcile children with data //
+
+        const arr = this.model(scope);
+        if (this.children.length !== arr.length) {
+            const difflen = Math.abs(this.children.length - arr.length);
+            const offset = Math.min(this.children.length, arr.length);
+
+            if (this.children.length > arr.length) {
+                // remove excess children
+                for (let i = 0; i < difflen; i++) {
+                    const child = this.children.pop();
+                    child.leave();
+                }
+            } else {
+                // add deficit children
+                for (let i = 0; i < difflen; i++) {
+                    const element = arr[offset+i];
+                    const child_scope = Object.assign(Object.create(scope), element);
+                    const child = this.child();
+                    this.children.push(child);
+                    child.enter(this);
+                    child.initialize(child_scope);
+                }
+            }
+        }
+
+        for (let i = 0; i < arr.length; i++) {
+            const row = arr[i];
+            const child = this.children[i];
+            const child_scope = Object.assign(Object.create(scope), row);
+            child.update(child_scope);
+        }
+    }
+};
+
+E3.Cube = class extends E3 {
+    constructor(params){
+        super(params);
+        this.geometry = new THREE.BoxGeometry(1,1,1);
+        this.material = new THREE.MeshBasicMaterial({
+            color:0x00ff00,
+            wireframe:true,
+        });
+        this.obj = new THREE.Mesh(this.geometry, this.material);
+    }
+
+    enter(parent_node) {
+        super.enter(parent_node);
+    }
+
+    leave() {
+        super.leave();
+    }
+};
