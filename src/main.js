@@ -5,13 +5,27 @@ const model3d = {
         position: [0, 0.5, -4],
         rotation: [0, 1, 1.5],
     },
-    enemies: [
-        {   position: [1, 0, -5],
-            rotation: [0, 1, 1], },
-        {   position: [2, 0, -5],
-            rotation: [0, 1, 1], },
-        {   position: [3, 0, -5],
-            rotation: [0, 1, 1], },
+    enemy_groups: [
+        {
+            enemies: [
+                {   position: [1, 0, -5],
+                    rotation: [0, 1, 1], },
+                {   position: [2, 0, -5],
+                    rotation: [0, 1, 1], },
+                {   position: [3, 0, -5],
+                    rotation: [0, 1, 1], },
+            ],
+        },
+        {
+            enemies: [
+                {   position: [1, 0, -5],
+                    rotation: [0, 1, 1], },
+                {   position: [2, 0, -5],
+                    rotation: [0, 1, 1], },
+                {   position: [3, 0, -5],
+                    rotation: [0, 1, 1], },
+            ],
+        },
     ],
 };
 
@@ -20,22 +34,26 @@ window.addEventListener("load", () => {
     window.scene = new E3.Scene({
         children: [
             new E3.ForEach({
-                model: scope => scope.enemies,
+                model: scope => scope.enemy_groups,
                 child: () =>
-                new E3.Cube({
-                    onInitialize(obj, enemy) {
-                        obj.position.x = enemy.position[0];
-                        obj.position.y = enemy.position[1];
-                        obj.position.z = enemy.position[2];
-                        Object.assign(obj.material.color, {r:1,g:0,b:0});
-                    },
-                    onUpdate(obj, enemy) {
-                        obj.rotation.x = enemy.rotation[0];
-                        obj.rotation.y = enemy.rotation[1];
-                        obj.rotation.z = enemy.rotation[2];
-                    },
+                new E3.ForEach({
+                    model: scope => scope.enemies,
+                    child: () =>
+                    new E3.Cube({
+                        onInitialize(obj, enemy) {
+                            obj.position.x = enemy.position[0];
+                            obj.position.y = enemy.position[1];
+                            obj.position.z = enemy.position[2];
+                            Object.assign(obj.material.color, {r:1,g:0,b:0});
+                        },
+                        onUpdate(obj, enemy) {
+                            obj.rotation.x = enemy.rotation[0];
+                            obj.rotation.y = enemy.rotation[1];
+                            obj.rotation.z = enemy.rotation[2];
+                        },
+                    }),
                 }),
-            })
+            }),
         ],
     });
 
@@ -54,25 +72,33 @@ window.addEventListener("load", () => {
         model3d.player.rotation[0] = Math.sin(elapsed);
         model3d.player.rotation[1] = Math.cos(elapsed);
 
-        for (let i = 0; i < model3d.enemies.length; i++) {
-            model3d.enemies[i].rotation[0] = Math.sin(elapsed+i);
-            model3d.enemies[i].rotation[1] = Math.cos(elapsed+i);
+        for (const grp of model3d.enemy_groups) {
+            for (let i = 0; i < grp.enemies.length; i++) {
+                grp.enemies[i].rotation[0] = Math.sin(elapsed+i);
+                grp.enemies[i].rotation[1] = Math.cos(elapsed+i);
+            }
         }
 
         if (keyInput.Enter) {
-            const num_enemies = Math.random() * 10;
-            const difflen = Math.abs(num_enemies, model3d.enemies.length);
-            if (num_enemies !== model3d.enemies.length) {
-                if (num_enemies < model3d.enemies.length) {
-                    model3d.enemies = model3d.enemies.slice(0, num_enemies);
-                } else {
-                    for (let i = 0; i < difflen; i++) {
-                        model3d.enemies.push({
-                            position: [i-5, 0, -5],
-                            rotation: [0, 1, 1],
-                        });
+            let grp_num = 0;
+            for (const grp of model3d.enemy_groups) {
+
+                const num_enemies = Math.random() * 10;
+                const difflen = Math.abs(num_enemies, grp.enemies.length);
+
+                if (num_enemies !== grp.enemies.length) {
+                    if (num_enemies < grp.enemies.length) {
+                        grp.enemies = grp.enemies.slice(0, num_enemies);
+                    } else {
+                        for (let i = 0; i < difflen; i++) {
+                            grp.enemies.push({
+                                position: [i-5, grp_num*2, -5],
+                                rotation: [0, 1, 1],
+                            });
+                        }
                     }
                 }
+                grp_num++;
             }
 
         }
