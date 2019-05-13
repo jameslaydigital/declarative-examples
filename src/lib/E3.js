@@ -36,12 +36,36 @@ class E3 {
 
 }
 
+E3.PerspectiveCamera = class {
+
+    constructor({onInitialize=()=>{}, onUpdate=()=>{}}) {
+        this.obj = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.onInitialize = onInitialize;
+        this.onUpdate = onUpdate;
+    }
+
+    enter(parent_node) {}
+
+    leave() {}
+
+    update(scope) {
+        this.onUpdate(this.obj, scope);
+    }
+
+    initialize(scope) {
+        this.onInitialize(this.obj, scope);
+    }
+};
+
+
 E3.Scene = class {
 
-    constructor({children = []}) {
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    constructor({camera=null, onUpdate=()=>{}, onInitialize=()=>{}, children = []}) {
+        this.camera = camera || new E3.PerspectiveCamera();
         this.renderer = new THREE.WebGLRenderer();
         this.children = children;
+        this.onUpdate = onUpdate;
+        this.onInitialize = onInitialize;
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(this.renderer.domElement);
         this.obj = new THREE.Scene();
@@ -55,14 +79,18 @@ E3.Scene = class {
     update(delta) {
         const scope = Object.create(model3d);
         scope.delta = delta;
+        this.onUpdate(this.obj, scope);
+        this.camera.update(scope);
         for (const child of this.children) {
             child.update(scope);
         }
-        this.renderer.render(this.obj, this.camera);
+        this.renderer.render(this.obj, this.camera.obj);
     }
 
     initialize() {
         const scope = Object.create(model3d);
+        this.onInitialize(this.obj, scope);
+        this.camera.initialize(scope);
         for (const child of this.children) {
             child.initialize(scope);
         }
@@ -91,9 +119,6 @@ E3.ForEach = class extends E3 {
     }
 
     update(scope) {
-
-        // TODO: reconcile children with data //
-
         const arr = this.model(scope);
         if (this.children.length !== arr.length) {
             const difflen = Math.abs(this.children.length - arr.length);
@@ -127,11 +152,11 @@ E3.ForEach = class extends E3 {
     }
 };
 
-E3.Cube = class extends E3 {
-    constructor(params){
+E3.Mesh = class extends E3 {
+    constructor(params) {
         super(params);
-        this.geometry = new THREE.BoxGeometry(1,1,1);
-        this.material = new THREE.MeshBasicMaterial({
+        this.geometry = params.geometry || new THREE.BoxGeometry(1,1,1);
+        this.material = params.material || new THREE.MeshBasicMaterial({
             color:0x00ff00,
             wireframe:true,
         });
@@ -146,3 +171,17 @@ E3.Cube = class extends E3 {
         super.leave();
     }
 };
+
+E3.cubeMesh = (params) => {
+    return new E3.Mesh({
+        ...params,
+        geometry: new THREE.BoxGeometry(1, 1, 1),
+    });
+}
+
+E3.sphereMesh = (params) => {
+    return new E3.Mesh({
+        ...params,
+        geometry: new THREE.SphereGeometry(1, 1, 1),
+    });
+}

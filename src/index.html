@@ -4,8 +4,10 @@
         <title> declaritive extensions example </title>
         <meta charset="utf8" />
         <link rel="stylesheet" type="text/css" href="styles.css" />
-        <!-- THREE JS -->
+        <!-- THREE JS (for graphics) -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/104/three.min.js"></script>
+        <!-- CANNON JS (for physics) -->
+        <script src="//github.com/schteppe/cannon.js/releases/download/v0.6.2/cannon.min.js"></script>
         <!-- used for pretty printing of AST output -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.10.0/beautify.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.10.0/beautify-css.min.js"></script>
@@ -16,7 +18,11 @@
         <script src="utils/utils.js"></script>
         <!-- <script src="lib/E.js"></script> -->
         <script src="lib/E3.js"></script>
-        <script src="main.js"></script>
+        <script src="src/model.js"></script>
+        <script src="src/graphics.js"></script>
+        <script src="src/physics.js"></script>
+        <script src="src/logic.js"></script>
+        <script src="src/main.js"></script>
     </head>
     <body><div id="root"></div></body>
 </html>
