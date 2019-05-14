@@ -21,14 +21,14 @@ function init_physics() {
                 onPreStep(obj, scope) {
                     obj.position.set(
                         scope.player.position[0],
-                        scope.player.position[1],
+                        scope.player.position[1]+1,
                         scope.player.position[2]
                     );
                 },
 
                 onPostStep(obj, scope) {
                     scope.player.position[0] = obj.position.x;
-                    scope.player.position[1] = obj.position.y;
+                    scope.player.position[1] = obj.position.y-1;
                     scope.player.position[2] = obj.position.z;
                 },
 

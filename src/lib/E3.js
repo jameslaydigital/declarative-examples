@@ -159,8 +159,7 @@ E3.Mesh = class extends E3 {
         super(params);
         this.geometry = params.geometry || new THREE.BoxGeometry(1,1,1);
         this.material = params.material || new THREE.MeshBasicMaterial({
-            color:0x00ff00,
-            wireframe:true,
+            color:0x00ff00
         });
         this.obj = new THREE.Mesh(this.geometry, this.material);
     }
