@@ -1,7 +1,7 @@
 "use strict";
 
 const render_player = () =>
-    E3.cubeMesh({
+    G3.cubeMesh({
         onInitialize(obj, model) {
             obj.position.x = 0;
             obj.position.y = 0;
@@ -17,10 +17,10 @@ const render_player = () =>
 
 const render_bullets = () =>
 
-    new E3.ForEach({
+    new G3.ForEach({
         model: scope => scope.bullets,
         child: () => 
-        E3.sphereMesh({
+        G3.sphereMesh({
             radius: 0.5,
             widthSegments: 3,
             heightSegments: 3,
@@ -39,10 +39,10 @@ const render_bullets = () =>
 
 
 const render_enemies = () =>
-    new E3.ForEach({
+    new G3.ForEach({
         model: scope => scope.enemies,
         child: () =>
-        E3.cubeMesh({
+        G3.cubeMesh({
             onInitialize(obj, enemy) {
                 obj.position.x = enemy.position[0];
                 obj.position.y = enemy.position[1];
@@ -59,7 +59,7 @@ const render_enemies = () =>
 
 
 const game_camera = () => 
-    new E3.PerspectiveCamera({
+    new G3.PerspectiveCamera({
         onInitialize(obj, scope) {
             obj.position.x = scope.camera.position[0];
             obj.position.y = scope.camera.position[1];
@@ -76,7 +76,7 @@ const game_camera = () =>
 function init_graphics() {
 
     const scene = 
-        new E3.Scene({
+        new G3.Scene({
             camera: game_camera(),
             children: [
                 render_player(),

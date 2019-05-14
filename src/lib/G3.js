@@ -1,6 +1,6 @@
 "use strict";
 
-class E3 {
+class G3 {
 
     constructor({onInitialize=()=>{}, onUpdate=()=>{}, children=[]}) {
         this.children = children;
@@ -36,7 +36,7 @@ class E3 {
 
 }
 
-E3.PerspectiveCamera = class {
+G3.PerspectiveCamera = class {
 
     constructor({onInitialize=()=>{}, onUpdate=()=>{}}) {
         this.obj = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -58,12 +58,12 @@ E3.PerspectiveCamera = class {
 };
 
 
-E3.Scene = class {
+G3.Scene = class {
 
     // TODO - this and World should inherit from the same abstract class.
 
     constructor({camera=null, onUpdate=()=>{}, onInitialize=()=>{}, children = []}) {
-        this.camera = camera || new E3.PerspectiveCamera();
+        this.camera = camera || new G3.PerspectiveCamera();
         this.renderer = new THREE.WebGLRenderer();
         this.children = children;
         this.onUpdate = onUpdate;
@@ -99,7 +99,7 @@ E3.Scene = class {
     }
 };
 
-E3.ForEach = class extends E3 {
+G3.ForEach = class extends G3 {
 
     constructor({model=(()=>{}), as=Math.random().toString(), child=(()=>[])}) {
         super({children:[]});
@@ -154,7 +154,7 @@ E3.ForEach = class extends E3 {
     }
 };
 
-E3.Mesh = class extends E3 {
+G3.Mesh = class extends G3 {
     constructor(params) {
         super(params);
         this.geometry = params.geometry || new THREE.BoxGeometry(1,1,1);
@@ -173,8 +173,8 @@ E3.Mesh = class extends E3 {
     }
 };
 
-E3.cubeMesh = ({width=1, height=1, depth=1, ...params}) => {
-    return new E3.Mesh({
+G3.cubeMesh = ({width=1, height=1, depth=1, ...params}) => {
+    return new G3.Mesh({
         ...params,
         geometry: new THREE.BoxGeometry(
             width,
@@ -184,8 +184,8 @@ E3.cubeMesh = ({width=1, height=1, depth=1, ...params}) => {
     });
 }
 
-E3.sphereMesh = ({radius=1, widthSegments=1, heightSegments=1, ...params}) => {
-    return new E3.Mesh({
+G3.sphereMesh = ({radius=1, widthSegments=1, heightSegments=1, ...params}) => {
+    return new G3.Mesh({
         ...params,
         geometry: new THREE.SphereGeometry(
             radius,
