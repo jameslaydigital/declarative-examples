@@ -60,6 +60,8 @@ E3.PerspectiveCamera = class {
 
 E3.Scene = class {
 
+    // TODO - this and World should inherit from the same abstract class.
+
     constructor({camera=null, onUpdate=()=>{}, onInitialize=()=>{}, children = []}) {
         this.camera = camera || new E3.PerspectiveCamera();
         this.renderer = new THREE.WebGLRenderer();
@@ -172,16 +174,24 @@ E3.Mesh = class extends E3 {
     }
 };
 
-E3.cubeMesh = (params) => {
+E3.cubeMesh = ({width=1, height=1, depth=1, ...params}) => {
     return new E3.Mesh({
         ...params,
-        geometry: new THREE.BoxGeometry(1, 1, 1),
+        geometry: new THREE.BoxGeometry(
+            width,
+            height,
+            depth
+        ),
     });
 }
 
-E3.sphereMesh = (params) => {
+E3.sphereMesh = ({radius=1, widthSegments=1, heightSegments=1, ...params}) => {
     return new E3.Mesh({
         ...params,
-        geometry: new THREE.SphereGeometry(1, 1, 1),
+        geometry: new THREE.SphereGeometry(
+            radius,
+            widthSegments,
+            heightSegments
+        ),
     });
 }

@@ -3,7 +3,7 @@
 const Assemblages = {
     player() {
         return {
-            position: [0, 0, -5],
+            position: [0, 3, -5],
             rotation: [0, 0, 0],
             fire_cooldown: 0,
         };
