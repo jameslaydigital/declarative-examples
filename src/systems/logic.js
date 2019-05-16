@@ -1,5 +1,7 @@
 "use strict";
 
+// TODO - add force instead of forcibly moving player
+
 function init_logic() {
 
     window.keyInput = {};
@@ -12,20 +14,19 @@ function init_logic() {
         elapsed += delta;
 
         const movement_vector = [0, 0, 0];
-        const x_speed = 8;
-        const z_speed = 2;
+        const speed = 8;
 
         if (keyInput.w) {
-            movement_vector[2] -= z_speed * delta;
+            movement_vector[2] -= speed * delta;
         }
         if (keyInput.s) {
-            movement_vector[2] += z_speed * delta;
+            movement_vector[2] += speed * delta;
         }
         if (keyInput.a) {
-            movement_vector[0] -= x_speed * delta;
+            movement_vector[0] -= speed * delta;
         }
         if (keyInput.d) {
-            movement_vector[0] += x_speed * delta;
+            movement_vector[0] += speed * delta;
         }
 
         const player = model3d.player;
@@ -51,7 +52,7 @@ function init_logic() {
         model3d.bullets = model3d.bullets.filter(b => b.lifetime > 0);
 
         model3d.player.position.forEach((val, i) => {
-            model3d.player.position[i] += movement_vector[i];
+            model3d.player.force[i] = movement_vector[i] * 200;
         });
 
     };

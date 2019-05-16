@@ -124,3 +124,92 @@ P3.World = class {
     }
 
 };
+
+P3.ForEach = class extends G3 {
+
+    constructor({model=(()=>{}), as=Math.random().toString(), child=(()=>[])}) {
+        super({children:[]});
+        this.model = model;
+        this.as = as;
+        this.child = child;
+        this.children = [];
+        // TODO - figure this part out
+        // this is a temporary placeholder to hold its children until we get access to the world object
+        this.obj = {
+            children: [],
+            add: (obj) => {
+                this.obj.children = obj;
+            },
+        };
+    }
+
+    enter(parent_node) {
+        this.parent = parent_node;
+        this.obj = this.parent.obj; // switcheroo //
+        for (const child of this.children) {
+            child.enter(this);
+        }
+    }
+
+    leave() {
+        for (const child of this.children) {
+            child.leave();
+        }
+        this.children = null;
+    }
+
+    initialize(scope) {
+        for (const row of this.model(scope)) {
+            const child_scope = Object.assign(Object.create(scope), row);
+            const child = this.child();
+            this.children.push(child);
+            child.enter(this);
+            child.initialize(child_scope);
+        }
+    }
+
+    preStep(scope) {
+        // reconcile arrays before prestep //
+        const arr = this.model(scope);
+        if (this.children.length !== arr.length) {
+            const difflen = Math.abs(this.children.length - arr.length);
+            const offset = Math.min(this.children.length, arr.length);
+
+            if (this.children.length > arr.length) {
+                // remove excess children
+                for (let i = 0; i < difflen; i++) {
+                    const child = this.children.pop();
+                    child.leave();
+                }
+            } else {
+                // add deficit children
+                for (let i = 0; i < difflen; i++) {
+                    const element = arr[offset+i];
+                    const child_scope = Object.assign(Object.create(scope), element);
+                    const child = this.child();
+                    this.children.push(child);
+                    child.enter(this);
+                    child.initialize(child_scope);
+                }
+            }
+        }
+
+        for (let i = 0; i < arr.length; i++) {
+            const row = arr[i];
+            const child = this.children[i];
+            const child_scope = Object.assign(Object.create(scope), row);
+            child.preStep(child_scope);
+        }
+    }
+
+    postStep(scope) {
+        const arr = this.model(scope);
+        for (let i = 0; i < arr.length; i++) {
+            const row = arr[i];
+            const child = this.children[i];
+            const child_scope = Object.assign(Object.create(scope), row);
+            child.postStep(child_scope);
+        }
+    }
+
+};
