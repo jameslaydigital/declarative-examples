@@ -2,7 +2,7 @@
 
 function init_graphics() {
 
-    const scene = 
+    window.scene = 
         new G3.Scene({
             camera: game_camera(),
             children: [
